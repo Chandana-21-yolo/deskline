@@ -1,0 +1,80 @@
+<div style="max-width:1000px;margin:24px auto;padding:0 16px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h2>DeskLine</h2>
+    <button (click)="logout()">Sign out</button>
+  </div>
+
+  <div style="border:1px solid #ddd;border-radius:8px;padding:16px;margin-bottom:20px;">
+    <h3>New ticket</h3>
+    <input placeholder="Title" [(ngModel)]="newTitle" style="width:100%;padding:8px;margin-bottom:8px;" />
+    <textarea placeholder="Description" [(ngModel)]="newDescription" style="width:100%;padding:8px;margin-bottom:8px;"></textarea>
+    <select [(ngModel)]="newPriority" style="padding:8px;margin-right:8px;">
+      <option value="low">Low</option>
+      <option value="medium">Medium</option>
+      <option value="high">High</option>
+    </select>
+    <button (click)="createTicket()">Create ticket</button>
+  </div>
+
+  <div style="margin-bottom:16px;">
+    <label>Status:
+      <select [(ngModel)]="statusFilter">
+        <option value="all">All</option>
+        <option value="open">Open</option>
+        <option value="in-progress">In progress</option>
+        <option value="resolved">Resolved</option>
+      </select>
+    </label>
+    <label style="margin-left:16px;">Priority:
+      <select [(ngModel)]="priorityFilter">
+        <option value="all">All</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+    </label>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;" *ngIf="filtered$ | async as list">
+    <div *ngFor="let status of statuses" style="background:#f7f7f7;border-radius:8px;padding:12px;">
+      <h4 style="text-transform:capitalize;">{{ status }} ({{ byStatus(list, status).length }})</h4>
+
+      <div *ngFor="let t of byStatus(list, status)" style="background:white;border:1px solid #e0e0e0;border-radius:6px;padding:10px;margin-bottom:10px;">
+        <ng-container *ngIf="editing?.id === t.id; else viewMode">
+          <input [(ngModel)]="editing!.title" style="width:100%;margin-bottom:6px;" />
+          <textarea [(ngModel)]="editing!.description" style="width:100%;margin-bottom:6px;"></textarea>
+          <select [(ngModel)]="editing!.priority" style="margin-bottom:6px;">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+          <div>
+            <button (click)="saveEdit()">Save</button>
+            <button (click)="cancelEdit()">Cancel</button>
+          </div>
+        </ng-container>
+
+        <ng-template #viewMode>
+          <strong>{{ t.title }}</strong>
+          <p style="font-size:13px;color:#555;">{{ t.description }}</p>
+          <span style="font-size:12px;padding:2px 6px;border-radius:4px;background:#eee;">{{ t.priority }}</span>
+
+          <div style="margin-top:8px;">
+            <select [ngModel]="t.status" (ngModelChange)="changeStatus(t, $event)">
+              <option value="open">Open</option>
+              <option value="in-progress">In progress</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+          <div style="margin-top:6px;">
+            <input placeholder="Assignee UID" [ngModel]="t.assigneeId" (ngModelChange)="assign(t, $event)" style="width:100%;font-size:12px;" />
+          </div>
+          <div style="margin-top:8px;">
+            <button (click)="startEdit(t)">Edit</button>
+            <button (click)="remove(t)">Delete</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>
